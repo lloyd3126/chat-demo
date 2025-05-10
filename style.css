@@ -1,0 +1,455 @@
+:root {
+    --chatgpt-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    --user-message-bg: #D1E9FF;
+    /* 用戶訊息背景色 */
+    --assistant-message-bg: #F0F0F0;
+    /* AI 訊息背景色 */
+    --chat-bg: #FFFFFF;
+    /* 聊天區域背景 */
+    --app-bg: #F7F7F8;
+    /* 應用整體背景 */
+    --input-bg: #FFFFFF;
+    /* 輸入區域背景 */
+    --text-color: #333333;
+    /* 主要文字顏色 */
+    --border-color: #E0E0E0;
+    /* 邊框顏色 */
+    --button-bg: #19C37D;
+    /* 發送按鈕背景色 (ChatGPT 綠) */
+    --button-text-color: #FFFFFF;
+    /* 按鈕文字顏色 */
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--chatgpt-font-family);
+    margin: 0;
+    background-color: var(--app-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.chat-container {
+    width: 100%;
+    height: 100vh;
+    /* 佔滿整個視窗高度 */
+    max-width: 800px;
+    background-color: var(--chat-bg);
+    border-radius: 0px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    background-color: var(--chat-bg);
+    color: var(--text-color);
+    padding: 15px 20px;
+    text-align: center;
+    font-size: 0.9em;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.chat-box {
+    padding: 20px;
+    flex-grow: 1;
+    /* 佔據剩餘空間 */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    /* 訊息間距 */
+}
+
+/* 滾動條樣式 (可選) */
+.chat-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.chat-box::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+.message {
+    padding: 12px 18px;
+    border-radius: 12px;
+    max-width: 75%;
+    word-wrap: break-word;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.3s ease-out forwards;
+    line-height: 1.6;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message.developer {
+    /* 系統/開發者訊息樣式 */
+    background-color: #e9ecef;
+    color: #495057;
+    align-self: center;
+    /* 可以居中或靠左 */
+    font-size: 0.9em;
+    border-radius: 6px;
+    width: 100%;
+    max-width: 100%;
+}
+
+.message.system-prompt {
+    /* 系統提示詞訊息樣式 */
+    background-color: #e9ecef;
+    color: #495057;
+    align-self: center;
+    font-size: 0.9em;
+    border-radius: 6px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* 可收合 developer header 樣式 */
+.developer-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    padding: 0;
+}
+
+.developer-header span {
+    margin: 0 !important;
+}
+
+/* 可收合 system-prompt header 樣式 */
+.system-prompt-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    padding: 0;
+}
+
+.system-prompt-header span {
+    margin: 0 !important;
+}
+
+/* 可收合 user header 樣式 */
+.user-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+    padding: 0;
+}
+.user-header .role {
+    margin: 0 !important;
+    font-weight: bold;
+    font-size: 0.8em;
+    color: #555;
+}
+
+/* 可收合 assistant header 樣式 */
+.assistant-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+    padding: 0;
+}
+.assistant-header .role {
+    margin: 0 !important;
+    font-weight: bold;
+    font-size: 0.8em;
+    color: #555;
+}
+
+/* Chevron icon 樣式與旋轉動畫 */
+.toggle-icon {
+    transition: transform 0.2s;
+    font-size: 1.1em;
+    color: #888;
+}
+
+.toggle-icon.icon-rotated {
+    transform: rotate(-90deg);
+}
+
+/* 收合時隱藏內容 */
+.message-content.content-collapsed {
+    display: none;
+}
+
+.message.user {
+    background-color: var(--user-message-bg);
+    color: var(--text-color);
+    align-self: flex-end;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 4px;
+}
+
+.message.assistant {
+    background-color: var(--assistant-message-bg);
+    color: var(--text-color);
+    align-self: flex-start;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 12px;
+}
+
+.message .role {
+    font-weight: bold;
+    font-size: 0.8em;
+    margin-bottom: 5px;
+    display: block;
+    /* 原始保留，可根據需要調整或移除 */
+    text-transform: capitalize;
+    color: #555;
+}
+
+/* 如果不想要 role 文字標籤，可以將其隱藏: */
+/* .message .role { display: none; } */
+
+.message p {
+    margin: 0;
+}
+
+.error-message,
+.info-message {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    text-align: center;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 20px;
+    /* 在聊天框中有邊距 */
+    align-self: center;
+    width: calc(100% - 40px);
+    /* 使其寬度與聊天框 padding 一致 */
+}
+
+.info-message {
+    color: #0c5460;
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+.input-area {
+    display: none;
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    align-items: flex-end;
+    flex-shrink: 0;
+}
+
+.input-area textarea {
+    flex-grow: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 1rem;
+    font-family: var(--chatgpt-font-family);
+    resize: none;
+    min-height: 26px;
+    /* 約單行高度 */
+    max-height: 200px;
+    /* 限制最大高度 */
+    overflow-y: auto;
+    line-height: 1.5;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.input-area textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+}
+
+.input-area button {
+    background-color: var(--button-bg);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 8px;
+    padding: 0px 15px;
+    /* 調整 padding 使按鈕高度與文本框接近 */
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+    height: 50px;
+    /* 與 textarea 初始高度配合 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.input-area button:hover {
+    background-color: #14A86C;
+}
+
+.input-area button:disabled {
+    background-color: #BDBDBD;
+    cursor: not-allowed;
+}
+
+.input-area button svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+/* 複製按鈕區塊與樣式 */
+.message-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    margin: 4px 0 18px 0;
+    align-items: center;
+    width: max-content;
+    background: none;
+    box-shadow: none;
+}
+
+/* 對齊：user靠右，assistant靠左，developer居中 */
+.actions-user {
+    align-self: flex-end;
+}
+
+.actions-assistant {
+    align-self: flex-start;
+    margin-left: 0;
+}
+
+.actions-developer {
+    align-self: center;
+}
+
+.actions-system-prompt {
+    align-self: center;
+}
+
+
+.copy-btn,
+.copy-md-btn,
+.toggle-content-btn {
+    background: #f4f4f4;
+    border: 1px solid #e0e0e0;
+    color: #555;
+    cursor: pointer;
+    padding: 4px 12px 4px 6px;
+    border-radius: 6px;
+    font-size: 0.97em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+    opacity: 0.85;
+}
+
+.copy-btn:hover,
+.copy-md-btn:hover,
+.toggle-content-btn:hover {
+    background: #e6f9f0;
+    color: #19C37D;
+    border: 1px solid #19C37D;
+    opacity: 1;
+}
+
+.copy-btn:active,
+.copy-md-btn:active,
+.toggle-content-btn:active {
+    color: #0e7c4a;
+    background: #d1ecf1;
+}
+
+.copy-tip {
+    display: none;
+    margin-left: 8px;
+    background: #19C37D;
+    color: #fff;
+    font-size: 0.85em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(25, 195, 125, 0.08);
+    vertical-align: middle;
+}
+
+.toggle-content-btn i {
+    font-size: 1em;
+}
+
+/* 讓 message 內容有相對定位以放置複製按鈕 */
+.message {
+    position: relative;
+}
+
+/* markdown 樣式 */
+.message-content code {
+    background: #f4f4f4;
+    color: #d6336c;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: "JetBrains Mono", "Fira Mono", "Menlo", "Consolas", monospace;
+    font-size: 0.97em;
+}
+
+.message-content pre {
+    background: #f4f4f4;
+    color: #222;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: "JetBrains Mono", "Fira Mono", "Menlo", "Consolas", monospace;
+    font-size: 0.97em;
+    margin: 8px 0;
+}
+
+.message-content blockquote {
+    border-left: 4px solid #19C37D;
+    background: #f7faf7;
+    color: #555;
+    margin: 8px 0;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.message-content ul,
+.message-content ol {
+    margin: 8px 0 8px 24px;
+    padding: 0 0 0 16px;
+}
+
+.message-content li {
+    margin: 4px 0;
+}

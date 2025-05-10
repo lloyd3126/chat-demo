@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Escape / Unescape 工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            /* Light gray background for a bit of softness */
+            padding-top: 20px;
+            /* Add some space at the top */
+        }
+
+        .container {
+            background-color: #ffffff;
+            /* White background for the main content */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            /* Subtle shadow for depth */
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            margin-top: 5px;
+            /* Add a little space between buttons if they wrap */
+        }
+
+        #outputTextarea {
+            background-color: #e9ecef;
+            /* Slightly different background for readonly textarea */
+        }
+
+        .card-header {
+            font-weight: bold;
+        }
+
+        /* Custom alert styling for copy feedback */
+        .copy-alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            /* Ensure it's above other elements */
+            display: none;
+            /* Hidden by default */
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-4 mb-4">
+        <h1>JSON Escape / Unescape 工具</h1>
+        <p class="lead text-center mb-4">String Escaper & Utilities</p>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                使用說明
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    此工具用於將一般字串進行「跳脫」(Escape) 處理，使其能安全地嵌入 JSON 結構中的字串值內；或將已被跳脫處理的字串「反跳脫」(Unescape) 還原成原始樣貌。
+                </p>
+                <p class="card-text">
+                    以下是在 JSON 字串中具有特殊意義且必須進行跳脫處理的字元：
+                </p>
+                <ul>
+                    <li>Backspace (退格鍵) 會被取代為 <code>\b</code></li>
+                    <li>Form feed (換頁鍵) 會被取代為 <code>\f</code></li>
+                    <li>Newline (換行鍵) 會被取代為 <code>\n</code></li>
+                    <li>Carriage return (回車鍵) 會被取代為 <code>\r</code></li>
+                    <li>Tab (定位鍵) 會被取代為 <code>\t</code></li>
+                    <li>Double quote (雙引號) 會被取代為 <code>\"</code></li>
+                    <li>Backslash (反斜線) 會被取代為 <code>\\</code></li>
+                </ul>
+                <p class="card-text">請將您需要處理的字串複製並貼到下方的「輸入字串」區域。</p>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="inputTextarea" class="form-label fw-bold">輸入字串:</label>
+            <textarea class="form-control" id="inputTextarea" rows="6" placeholder="請在此貼上您要處理的文字..."></textarea>
+        </div>
+
+        <div class="mb-3 text-center">
+            <button id="escapeBtn" class="btn btn-primary btn-lg me-md-2 mb-2">Escape (跳脫)</button>
+            <button id="unescapeBtn" class="btn btn-secondary btn-lg me-md-2 mb-2">Unescape (反跳脫)</button>
+            <button id="copyBtn" class="btn btn-success btn-lg me-md-2 mb-2">複製結果</button>
+            <button id="clearBtn" class="btn btn-danger btn-lg mb-2">全部清除</button>
+        </div>
+
+        <div class="mb-3">
+            <label for="outputTextarea" class="form-label fw-bold">輸出結果:</label>
+            <textarea class="form-control" id="outputTextarea" rows="6" readonly
+                placeholder="處理結果將會顯示在這裡..."></textarea>
+        </div>
+
+        <div id="copyFeedback" class="copy-alert alert-success" role="alert">
+            結果已成功複製到剪貼簿！
+        </div>
+        <div id="errorFeedback" class="copy-alert alert-danger" role="alert">
+            處理失敗：輸入的內容可能不是合法的已跳脫字串。
+        </div>
+
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Function to escape a string for JSON
+            function escapeJsonString(str) {
+                if (typeof str !== 'string') {
+                    return ""; // Or handle error appropriately
+                }
+                // JSON.stringify will create a full JSON string literal,
+                // including the outer quotes. We need to remove them.
+                // It also correctly handles unicode, control characters, quotes, and backslashes.
+                return JSON.stringify(str).slice(1, -1);
+            }
+
+            // Function to unescape a string from JSON
+            function unescapeJsonString(str) {
+                if (typeof str !== 'string') {
+                    return ""; // Or handle error appropriately
+                }
+                // To parse a string value, it must be enclosed in double quotes
+                // to be a valid JSON string literal.
+                try {
+                    return JSON.parse('"' + str + '"');
+                } catch (e) {
+                    // If parsing fails, it might be because the string is not
+                    // a properly escaped JSON string fragment.
+                    console.error("Unescape failed:", e);
+                    $('#errorFeedback').fadeIn().delay(2000).fadeOut(); // Show error feedback
+                    return null; // Indicate failure
+                }
+            }
+
+            // Event listener for Escape button
+            $('#escapeBtn').on('click', function () {
+                const inputText = $('#inputTextarea').val();
+                const escapedText = escapeJsonString(inputText);
+                $('#outputTextarea').val(escapedText);
+            });
+
+            // Event listener for Unescape button
+            $('#unescapeBtn').on('click', function () {
+                const inputText = $('#inputTextarea').val();
+                const unescapedText = unescapeJsonString(inputText);
+                if (unescapedText !== null) { // Check if unescaping was successful
+                    $('#outputTextarea').val(unescapedText);
+                } else {
+                    $('#outputTextarea').val("錯誤：無法解析此字串。請確認輸入的是正確跳脫過的字串。");
+                }
+            });
+
+            // Event listener for Copy Result button
+            $('#copyBtn').on('click', function () {
+                const outputText = $('#outputTextarea').val();
+                if (outputText) {
+                    navigator.clipboard.writeText(outputText).then(function () {
+                        // Success! Show feedback.
+                        $('#copyFeedback').fadeIn().delay(2000).fadeOut();
+                    }, function (err) {
+                        // Error
+                        console.error('無法複製文字: ', err);
+                        alert('複製失敗，您的瀏覽器可能不支援此功能或未授予權限。');
+                    });
+                } else {
+                    alert('沒有內容可以複製喔！');
+                }
+            });
+
+            // Event listener for Clear All button
+            $('#clearBtn').on('click', function () {
+                $('#inputTextarea').val('');
+                $('#outputTextarea').val('');
+            });
+        });
+    </script>
+</body>
+
+</html>
