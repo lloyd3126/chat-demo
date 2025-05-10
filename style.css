@@ -198,8 +198,18 @@ body {
     transform: rotate(-90deg);
 }
 
-/* 收合時隱藏內容 */
-.message-content.content-collapsed {
+/* User/Assistant 收合時僅顯示第一行，超出省略號 */
+.message.user .message-content.content-collapsed,
+.message.assistant .message-content.content-collapsed {
+    display: block;
+    max-height: 1.6em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* System-prompt 收合時完全隱藏 */
+.message.system-prompt .message-content.content-collapsed {
     display: none;
 }
 
