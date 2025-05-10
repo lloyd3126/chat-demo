@@ -39,8 +39,6 @@ body {
 .chat-container {
     width: 100%;
     height: 100vh;
-    /* 佔滿整個視窗高度 */
-    max-width: 800px;
     background-color: var(--chat-bg);
     border-radius: 0px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
@@ -91,7 +89,7 @@ body {
 .message {
     padding: 12px 18px;
     border-radius: 12px;
-    max-width: 75%;
+    max-width: 45%;
     word-wrap: break-word;
     opacity: 0;
     transform: translateY(10px);
@@ -165,6 +163,7 @@ body {
     user-select: none;
     padding: 0;
 }
+
 .user-header .role {
     margin: 0 !important;
     font-weight: bold;
@@ -180,6 +179,7 @@ body {
     user-select: none;
     padding: 0;
 }
+
 .assistant-header .role {
     margin: 0 !important;
     font-weight: bold;
@@ -462,4 +462,30 @@ body {
 
 .message-content li {
     margin: 4px 0;
+}
+
+/* 全域成功提示框 */
+#global-success-alert {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1050;
+    display: none;
+    font-size: 0.95em;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transform: translateY(20px);
+    min-width: 100px;
+    text-align: center;
+}
+
+#global-success-alert.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
 }

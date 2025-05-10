@@ -1,3 +1,6 @@
+import { remark } from 'remark';
+import html from 'remark-html';
+
 const chatBox = document.getElementById('chatBox');
 const chatHeader = document.getElementById('chatHeader');
 const userInput = document.getElementById('userInput');
@@ -17,7 +20,7 @@ async function loadChat() {
         return;
     }
 
-    const filePath = `./data/${chatId}.json`; // 假設 JSON 檔案在 data 資料夾
+    const filePath = `/data/${chatId}.json`; // 假設 JSON 檔案在 public/data 資料夾
     chatHeader.textContent = `對話內容 (ID: ${chatId})`;
     disableInput(false);
 
@@ -44,7 +47,7 @@ async function loadChat() {
                 chatHeader.insertBefore(document.createTextNode(data.title + ' '), chatHeader.firstChild);
             }
         }
-        displayMessages(data.messages, chatId);
+        await displayMessages(data.messages, chatId);
     } catch (error) {
         console.error('無法讀取對話資料:', error);
         chatBox.innerHTML = ''; // 清空"正在載入"
@@ -53,23 +56,26 @@ async function loadChat() {
     }
 }
 
-function displayMessages(messages, chatId) {
+async function displayMessages(messages, chatId) {
     if (!messages || messages.length === 0) {
-        // 使用 addMessageToChatBox 顯示系統訊息
-        addMessageToChatBox('系統提示詞', `對話 (ID: ${chatId}) 沒有內容可顯示。`, 'system-prompt');
+        await addMessageToChatBox('系統提示詞', `對話 (ID: ${chatId}) 沒有內容可顯示。`, 'system-prompt');
         return;
     }
 
-    messages.forEach((msg, index) => {
-        // 根據 msg.role 決定 typeClass，如果沒有則默認為 role的小寫
+    for (const [index, msg] of messages.entries()) {
         const typeClass = msg.role ? (msg.role === 'developer' || msg.role === 'System' ? 'system-prompt' : msg.role.toLowerCase()) : 'system-prompt';
-        addMessageToChatBox(msg.role === 'developer' || msg.role === 'System' ? '系統提示詞' : (msg.role || 'System'), msg.content, typeClass, index * 0.1);
-    });
+        await addMessageToChatBox(
+            msg.role === 'developer' || msg.role === 'System' ? '系統提示詞' : (msg.role || 'System'),
+            msg.content,
+            typeClass,
+            index * 0.1
+        );
+    }
 
     scrollToBottom();
 }
 
-function addMessageToChatBox(role, content, typeClass, animationDelay = 0) {
+async function addMessageToChatBox(role, content, typeClass, animationDelay = 0) {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', typeClass || (role === 'developer' || role === 'System' ? 'system-prompt' : (role ? role.toLowerCase() : 'system-prompt')));
     messageDiv.style.animationDelay = `${animationDelay}s`;
@@ -78,13 +84,19 @@ function addMessageToChatBox(role, content, typeClass, animationDelay = 0) {
     roleSpan.classList.add('role');
     roleSpan.textContent = (role === 'developer' || role === 'System') ? '系統提示詞' : role;
 
-    // 訊息內容支援 markdown
+    // 訊息內容支援 remark markdown
     const contentDiv = document.createElement('div');
     contentDiv.classList.add('message-content');
-    if (window.marked) {
-        contentDiv.innerHTML = marked.parse(content);
+    if (content) {
+        try {
+            const file = await remark().use(html).process(content);
+            contentDiv.innerHTML = String(file);
+        } catch (error) {
+            console.error('Error processing markdown with remark:', error);
+            contentDiv.textContent = content;
+        }
     } else {
-        contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+        contentDiv.innerHTML = '';
     }
 
     if (typeClass === 'system-prompt') {
@@ -185,7 +197,7 @@ function addMessageToChatBox(role, content, typeClass, animationDelay = 0) {
         temp.innerHTML = contentDiv.innerHTML;
         const text = temp.textContent || temp.innerText || '';
         navigator.clipboard.writeText(text).then(() => {
-            showCopyFeedback(copyBtn, '純文字已複製！');
+            showCopyFeedback(copyBtn, '已複製純文字');
         });
     });
 
@@ -196,7 +208,7 @@ function addMessageToChatBox(role, content, typeClass, animationDelay = 0) {
     copyMdBtn.innerHTML = `<i class="bi bi-markdown"></i> 複製 Markdown`;
     copyMdBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(content).then(() => {
-            showCopyFeedback(copyMdBtn, 'Markdown 已複製！');
+            showCopyFeedback(copyMdBtn, '已複製 Markdown');
         });
     });
 
@@ -244,19 +256,25 @@ function addMessageToChatBox(role, content, typeClass, animationDelay = 0) {
     return messageDiv;
 }
 
-// 複製提示
+/**
+ * 全域成功提示
+ * 會在右下角顯示 2 秒，並有動畫效果
+ */
 function showCopyFeedback(btnElem, msg) {
-    let tip = btnElem.parentElement.querySelector('.copy-tip');
-    if (!tip) {
-        tip = document.createElement('span');
-        tip.className = 'copy-tip';
-        btnElem.parentElement.appendChild(tip);
+    const alertBox = document.getElementById('global-success-alert');
+    if (!alertBox) return;
+    const alertMessageSpan = alertBox.querySelector('span');
+    if (alertMessageSpan) {
+        alertMessageSpan.textContent = msg || '已複製！';
     }
-    tip.textContent = msg || '已複製！';
-    tip.style.display = 'inline-block';
-    setTimeout(() => {
-        tip.style.display = 'none';
-    }, 1200);
+    alertBox.classList.add('show');
+    // 防止多次觸發時計時器重疊
+    if (alertBox.hideTimeout) {
+        clearTimeout(alertBox.hideTimeout);
+    }
+    alertBox.hideTimeout = setTimeout(() => {
+        alertBox.classList.remove('show');
+    }, 2000);
 }
 
 function addErrorMessage(message) {
@@ -276,19 +294,19 @@ function addInfoMessage(message) {
     scrollToBottom();
 }
 
-function handleUserInput() {
+async function handleUserInput() {
     const messageText = userInput.value.trim();
     if (messageText === "") return;
 
-    addMessageToChatBox('User', messageText, 'user');
+    await addMessageToChatBox('User', messageText, 'user');
     userInput.value = "";
     autoGrowTextarea(userInput); // 發送後重置高度
     disableInput(true);
 
     // 模擬 AI 回應
-    setTimeout(() => {
+    setTimeout(async () => {
         const aiResponse = "這是一個模擬的 AI 回應。\n我收到了您的訊息：" + messageText.substring(0, 30) + "...";
-        addMessageToChatBox('Assistant', aiResponse, 'assistant');
+        await addMessageToChatBox('Assistant', aiResponse, 'assistant');
         disableInput(false);
         userInput.focus();
     }, 1000 + Math.random() * 800);
