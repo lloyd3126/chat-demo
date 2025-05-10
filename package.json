@@ -4,18 +4,20 @@
   "description": "",
   "main": "script.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
-  "scripts": {
-    "dev": "vite"
-  },
   "dependencies": {
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
     "vite": "^6.3.5"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
