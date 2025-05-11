@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/chat-demo/',
+  base: '/prompts/',
   server: {
     open: true
   }

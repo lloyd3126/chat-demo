@@ -6,23 +6,47 @@ const chatHeader = document.getElementById('chatHeader');
 const userInput = document.getElementById('userInput');
 const sendButton = document.getElementById('sendButton');
 
+function parsePath() {
+    const pathname = window.location.pathname; // 例如: "/prompts/share/some-id" 或 "/prompts/c/some-id"
+    const pathParts = pathname.split('/').filter(part => part.length > 0);
+    // pathParts 會是 ["prompts", "share", "some-id"] 或 ["prompts", "c", "some-id"]
+
+    let chatId = null;
+    let mode = null; // 預設為 null 或 'share'
+
+    if (pathParts.length === 3 && pathParts[0] === 'prompts') {
+        const action = pathParts[1];
+        const id = pathParts[2];
+
+        if (action === 'share') {
+            chatId = id;
+            mode = 'share'; // 不顯示輸入框
+        } else if (action === 'c') {
+            chatId = id;
+            mode = 'chat'; // 顯示輸入框
+        }
+    }
+    return { chatId, mode };
+}
+
 async function loadChat() {
     addInfoMessage('正在載入對話...');
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const chatId = urlParams.get('id'); // 確保 URL 參數名為 'id'
+    const { chatId, mode } = parsePath();
 
     if (!chatId) {
         chatHeader.textContent = "未指定對話";
         chatBox.innerHTML = ''; // 清空"正在載入"
-        addErrorMessage('請在網址中提供 chat ID，例如：index.html?id=檔名 (不含 .json)');
+        addErrorMessage('請在網址中提供 chat ID，例如：/prompts/share/檔名 或 /prompts/c/檔名');
         disableInput(true);
         return;
     }
 
-    const filePath = `/data/${chatId}.json`; // 假設 JSON 檔案在 public/data 資料夾
+    // 修正 fetch 路徑，確保從 /prompts/data/ 取檔案
+    const filePath = `/prompts/data/${chatId}.json`; // 假設 JSON 檔案在 public/data 資料夾
     chatHeader.textContent = `對話內容 (ID: ${chatId})`;
-    disableInput(false);
+    // 只有在 chat 模式才啟用輸入
+    disableInput(mode !== 'chat' ? true : false);
 
     try {
         const response = await fetch(filePath);
@@ -347,12 +371,14 @@ userInput.addEventListener('input', () => {
 document.addEventListener('DOMContentLoaded', () => {
     // 顯示 .input-area 條件判斷
     const inputArea = document.querySelector('.input-area');
-    const urlParams = new URLSearchParams(window.location.search);
+    const { mode } = parsePath();
     if (
-        urlParams.get('mode') === 'chat'
+        mode === 'chat'
         && inputArea
     ) {
         inputArea.style.display = 'flex';
+    } else if (inputArea) {
+        inputArea.style.display = 'none';
     }
     loadChat();
     userInput.focus();
