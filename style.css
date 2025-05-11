@@ -97,7 +97,7 @@ body {
     line-height: 1.6;
 }
 
-.message .assistant {
+.message.assistant {
     max-width: 100%;
 }
 
