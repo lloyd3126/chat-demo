@@ -8,6 +8,14 @@
         {
             "role": "assistant",
             "content": ""
+        },
+        {
+            "role": "user",
+            "content": ""
+        },
+        {
+            "role": "assistant",
+            "content": ""
         }
     ]
 }
