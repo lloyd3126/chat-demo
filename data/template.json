@@ -2,6 +2,10 @@
     "title": "測試用提示詞",
     "messages": [
         {
+            "role": "developer",
+            "content": ""
+        },
+        {
             "role": "user",
             "content": ""
         },
