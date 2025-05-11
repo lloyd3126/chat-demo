@@ -89,12 +89,16 @@ body {
 .message {
     padding: 12px 18px;
     border-radius: 12px;
-    max-width: 45%;
+    max-width: 60%;
     word-wrap: break-word;
     opacity: 0;
     transform: translateY(10px);
     animation: fadeIn 0.3s ease-out forwards;
     line-height: 1.6;
+}
+
+.message .assistant {
+    max-width: 100%;
 }
 
 @keyframes fadeIn {

@@ -71,6 +71,10 @@ async function loadChat() {
                 chatHeader.insertBefore(document.createTextNode(data.title + ' '), chatHeader.firstChild);
             }
         }
+        // 動態更新 <title>
+        if (data.title) {
+            document.title = `${data.title}｜提示詞分享工具`;
+        }
         await displayMessages(data.messages, chatId);
     } catch (error) {
         console.error('無法讀取對話資料:', error);
